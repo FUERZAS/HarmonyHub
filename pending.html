@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pending Approval</title>
+  <link rel="stylesheet" href="pending.css">
+</head>
+<body>
+  <div class="pending-container">
+    <div class="pending-card">
+      <h1>Account Pending Approval</h1>
+      <p>Your account has been created but is awaiting admin approval.</p>
+      <div class="loader"></div>
+      <p class="note">This page will automatically refresh when your account is approved.</p>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="pending.js"></script>
+</body>
+</html>

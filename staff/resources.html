@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Admin || Resources</title>
+    <link rel="stylesheet" href="../admin/css/base.css">
+    <link rel="stylesheet" href="../admin/css/resources.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+                    <li><a href="user-management.html" class="nav-link"><span>👥</span> User Management</a></li>
+                    <li><a href="resources.html" class="nav-link active"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Admin User</p>
+                        <p class="user-role">Administrator</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>Resource Management</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                    <button class="add-resource-btn" id="add-resource-btn">+ Add Resource</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Resource Management Controls -->
+                <div class="management-controls">
+                    <div class="search-box">
+                        <input type="text" id="resource-search" placeholder="Search resources...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="category-filter">
+                            <option value="all">All Categories</option>
+                            <option value="documents">Documents</option>
+                            <option value="videos">Videos</option>
+                            <option value="images">Images</option>
+                            <option value="links">Links</option>
+                        </select>
+                        <select id="access-filter">
+                            <option value="all">All Access Levels</option>
+                            <option value="public">Public</option>
+                            <option value="members">Members Only</option>
+                            <option value="staff">Staff Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Resource Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            📁
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="total-resources">0</h3>
+                            <p class="stat-label">Total Resources</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-green">
+                            📄
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="document-resources">0</h3>
+                            <p class="stat-label">Documents</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-orange">
+                            🎬
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="video-resources">0</h3>
+                            <p class="stat-label">Videos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-purple">
+                            🔗
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="link-resources">0</h3>
+                            <p class="stat-label">External Links</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources Grid (Cards) -->
+                <div class="resources-grid" id="resources-grid">
+                    <!-- Resources cards will be populated here dynamically -->
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="loading-indicator" id="loading-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading resources...</p>
+                </div>
+
+                <!-- No Resources Message -->
+                <div class="no-resources-message" id="no-resources-message" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No resources found</h3>
+                    <p>Try adding a new resource or adjusting your filters</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Resource Modal -->
+    <div class="modal" id="resource-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="resource-modal-title">Add New Resource</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="resource-form">
+                    <div class="form-group">
+                        <label for="resource-name">Resource Name</label>
+                        <input type="text" id="resource-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="resource-description">Description</label>
+                        <textarea id="resource-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="resource-category">Category</label>
+                        <select id="resource-category" required>
+                            <option value="documents">Documents</option>
+                            <option value="videos">Videos</option>
+                            <option value="images">Images</option>
+                            <option value="audio">Audio</option>
+                            <option value="links">External Links</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="resource-access">Access Level</label>
+                        <select id="resource-access" required>
+                            <option value="public">Public</option>
+                            <option value="members">Members Only</option>
+                            <option value="staff">Staff Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="file-upload-group">
+                        <label for="resource-file">Upload File</label>
+                        <button type="button" id="cloudinary-upload-btn" class="cloudinary-upload-btn">
+                            <i class="fas fa-cloud-upload-alt"></i> Select File
+                        </button>
+                        <div id="uploaded-file-info" style="display: none; margin-top: 10px;">
+                            <div id="file-preview"></div>
+                            <p id="file-name"></p>
+                        </div>
+                        <div class="file-upload-progress" id="file-upload-progress" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress" id="upload-progress"></div>
+                            </div>
+                            <span id="progress-percentage">0%</span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="external-link-group" style="display: none;">
+                        <label for="resource-link">External Link</label>
+                        <input type="url" id="resource-link" placeholder="https://example.com">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancel-resource-btn">Cancel</button>
+                        <button type="submit" class="submit-btn" id="submit-resource-btn">Save Resource</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal" id="preview-modal">
+        <div class="modal-content preview-modal-content">
+            <div class="modal-header">
+                <h2 id="preview-modal-title">Resource Preview</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="preview-content">
+                <!-- Preview content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-tabs">
+            <button class="notif-tab active" data-tab="all">All</button>
+            <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="../admin/js/base.js"></script>
+    <script src="js/resources.js"></script>
+    <script src="../notification.js"></script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+/* Announcements Page Styles */
+.announcements-header {
+    background: linear-gradient(135deg, #6a89cc 0%, #4a69bd 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.announcements-header h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+}
+
+.announcements-header p {
+    margin: 0 0 1.5rem 0;
+    opacity: 0.9;
+}
+
+.search-filter-bar {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.filter-options {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-options select {
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px;
+    background: white;
+    font-size: 0.9rem;
+    min-width: 150px;
+}
+
+/* Categories Section */
+.categories-section {
+    margin-bottom: 2rem;
+}
+
+.categories-section h3 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.category-icon {
+    font-size: 2rem;
+    color: #4a69bd;
+    margin-bottom: 1rem;
+}
+
+.category-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.category-card p {
+    margin: 0 0 1rem 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.announcement-count {
+    background: #4a69bd;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Announcements List */
+.announcements-section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: #f5f5f5;
+    border-radius: 5px;
+    padding: 0.25rem;
+}
+
+.view-btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+    color: #666;
+}
+
+.view-btn.active {
+    background: white;
+    color: #4a69bd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.announcements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.announcement-item {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: box-shadow 0.3s;
+}
+
+.announcement-item:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.announcement-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.priority-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.high-priority {
+    background: #e74c3c;
+}
+
+.medium-priority {
+    background: #f39c12;
+}
+
+.low-priority {
+    background: #27ae60;
+}
+
+.announcement-header h4 {
+    margin: 0;
+    flex: 1;
+    color: #333;
+}
+
+.announcement-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.announcement-content p {
+    margin: 0 0 1rem 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+.announcement-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.announcement-category {
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.announcement-category.urgent {
+    background: #ffeaea;
+    color: #e74c3c;
+}
+
+.announcement-category.events {
+    background: #eaf4ff;
+    color: #3498db;
+}
+
+.announcement-category.updates {
+    background: #f0f9ff;
+    color: #2ecc71;
+}
+
+.announcement-category.general {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.announcement-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.action-btn {
+    background: #f5f5f5;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.3s;
+}
+
+.action-btn:hover {
+    background: #e0e0e0;
+}
+
+.mark-read-btn {
+    background: #4a69bd;
+    color: white;
+}
+
+.mark-read-btn:hover {
+    background: #3c5aa8;
+}
+
+/* Cards View */
+.announcements-list.cards-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.announcements-list.cards-view .announcement-item {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.announcements-list.cards-view .announcement-content {
+    flex: 1;
+}
+
+/* Read Section */
+.read-section {
+    margin-bottom: 2rem;
+}
+
+.read-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.read-item {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 1.5rem;
+    opacity: 0.7;
+}
+
+.clear-read-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.clear-read-btn:hover {
+    background: #c0392b;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0.5rem 0;
+}
+
+/* Load More Button */
+.load-more-container {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.load-more-btn {
+    background: #4a69bd;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.load-more-btn:hover {
+    background: #3c5aa8;
+}
+
+/* Modal Styles */
+.announcement-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.announcement-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.preview-header h4 {
+    margin: 0;
+    flex: 1;
+}
+
+.preview-content p {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.preview-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.3s;
+}
+
+.btn-primary {
+    background: #4a69bd;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #3c5aa8;
+}
+
+.btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-filter-bar {
+        flex-direction: column;
+    }
+    
+    .filter-options {
+        flex-direction: column;
+    }
+    
+    .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    .announcement-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .announcement-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+}

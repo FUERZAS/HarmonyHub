@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Announcements</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/announcements.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="member-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+                    <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link active"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Member User</p>
+                        <p class="user-role">Member</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>Announcements</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Announcements Header -->
+                <div class="announcements-header">
+                    <h2>Community Announcements</h2>
+                    <p>Stay updated with the latest news and important information from your community</p>
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="announcement-search" placeholder="Search announcements...">
+                        </div>
+                        <div class="filter-options">
+                            <select id="priority-filter">
+                                <option value="all">All Priorities</option>
+                                <option value="high">High Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="low">Low Priority</option>
+                            </select>
+                            <select id="date-filter">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcements List -->
+                <div class="announcements-section">
+                    <div class="section-header">
+                        <h3>Recent Announcements</h3>
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="list">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button class="view-btn" data-view="cards">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="announcements-list" id="announcements-container">
+                        <!-- Announcement items will be populated here -->
+                        <div class="announcement-item" data-category="urgent" data-priority="high">
+                            <div class="announcement-header">
+                                <div class="priority-indicator high-priority"></div>
+                                <h4>Loading Announcements</h4>
+                                <span class="announcement-date"></span>
+                            </div>
+                            <div class="announcement-content">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Load More Button -->
+                    <div class="load-more-container">
+                        <button id="load-more-btn" class="load-more-btn">Load More Announcements</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-tabs">
+                <button class="notif-tab active" data-tab="all">All</button>
+                <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <!-- Announcement Detail Modal -->
+    <div id="announcement-modal" class="announcement-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Announcement Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="announcement-preview">
+                    <div class="preview-header">
+                        <div class="priority-indicator high-priority"></div>
+                        <h4 id="preview-title">Announcement Title</h4>
+                        <span id="preview-date">Date: Unknown</span>
+                    </div>
+                    <div class="preview-content">
+                        <p id="preview-description">Announcement content will appear here.</p>
+                        <div class="preview-meta">
+                            <span id="preview-author">Posted by: Unknown</span>
+                            <span id="preview-category">Category: Unknown</span>
+                            <span id="preview-priority">Priority: Unknown</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" id="modal-mark-read">
+                        <i class="far fa-check-circle"></i> Mark as Read
+                    </button>
+                    <button class="btn-secondary" id="modal-share">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="../member/js/base.js"></script>
+    <script src="../member/js/announcements.js"></script>
+    <script src="../notification.js"></script>
+</body>
+</html>

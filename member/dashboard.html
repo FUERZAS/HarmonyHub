@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Member Dashboard</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="member-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link active"><span>📊</span> Dashboard</a></li>
+                    <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Member User</p>
+                        <p class="user-role">Member</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Welcome Section -->
+                <div class="welcome-section">
+                    <h2>Welcome back, <span id="member-name">Member</span>!</h2>
+                    <p>Here's what's happening in your community today.</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            📅
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="upcoming-events">0</h3>
+                            <p class="stat-label">Upcoming Events</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-green">
+                            📁
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="resources-count">0</h3>
+                            <p class="stat-label">Available Resources</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-orange">
+                            🎬
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="meetings-count">0</h3>
+                            <p class="stat-label">Scheduled Meetings</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-purple">
+                            📢
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="announcements-count">0</h3>
+                            <p class="stat-label">New Announcements</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Recent Activity</h3>
+                        <a class="btn-primary" id="view-all-activity">View All</a>
+                    </div>
+                    <div class="activity-list" id="activity-list">
+                        <!-- Activity items will be populated here -->
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>New event added: Community Workshop</p>
+                                <span class="activity-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>New resource available: Project Guidelines</p>
+                                <span class="activity-time">Yesterday</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>New announcement: Office hours change</p>
+                                <span class="activity-time">2 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Events Section -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Upcoming Events</h3>
+                        <a href="schedules.html" class="view-all-link">View Calendar</a>
+                    </div>
+                    <div class="events-list" id="events-list">
+                        <!-- Events will be populated here -->
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="event-day">15</span>
+                                <span class="event-month">MAR</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Community Workshop</h4>
+                                <p>10:00 AM - 12:00 PM</p>
+                                <span class="event-location">Main Conference Room</span>
+                            </div>
+                            <button class="event-action">RSVP</button>
+                        </div>
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="event-day">18</span>
+                                <span class="event-month">MAR</span>
+                            </div>
+                            <div class="event-details">
+                                <h4>Team Building Session</h4>
+                                <p>2:00 PM - 4:00 PM</p>
+                                <span class="event-location">Outdoor Area</span>
+                            </div>
+                            <button class="event-action">RSVP</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions-grid">
+                        <a href="resources.html" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <h4>Browse Resources</h4>
+                            <p>Access documents, guides, and materials</p>
+                        </a>
+                        <a href="meetings.html" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <h4>Join Meeting</h4>
+                            <p>Participate in online sessions</p>
+                        </a>
+                        <a href="assist.html" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4>AI Assistant</h4>
+                            <p>Get help with your queries</p>
+                        </a>
+                        <a href="announcements.html" class="quick-action-card">
+                            <div class="action-icon">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <h4>Latest News</h4>
+                            <p>Check recent announcements</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-tabs">
+                <button class="notif-tab active" data-tab="all">All</button>
+                <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <button class="notif-mark-all" title="Mark visible as read">Mark all read</button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="../member/js/base.js"></script>
+    <script src="../member/js/dashboard.js"></script>
+    <script src="../notification.js"></script>
+</body>
+</html>

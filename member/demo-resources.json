@@ -1,0 +1,50 @@
+[
+  {
+    "id": "demo-video-1",
+    "name": "Sample Video",
+    "description": "Short demo video for testing playback.",
+    "category": "media",
+    "accessLevel": "public",
+    "fileUrl": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+    "uploadDate": "2023-01-01T00:00:00Z",
+    "cloudinaryData": {"bytes": 1048576}
+  },
+  {
+    "id": "demo-audio-1",
+    "name": "Sample Audio",
+    "description": "Short demo audio for testing playback.",
+    "category": "media",
+    "accessLevel": "public",
+    "fileUrl": "https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3",
+    "uploadDate": "2023-01-02T00:00:00Z",
+    "cloudinaryData": {"bytes": 700000}
+  }
+  ,
+  {
+    "id": "demo-pdf-1",
+    "name": "Sample PDF",
+    "description": "A sample PDF for preview testing.",
+    "category": "documents",
+    "accessLevel": "public",
+    "fileUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    "uploadDate": "2023-01-03T00:00:00Z"
+  },
+  {
+    "id": "demo-image-1",
+    "name": "Sample Image",
+    "description": "A sample image for preview testing.",
+    "category": "media",
+    "accessLevel": "public",
+    "fileUrl": "https://via.placeholder.com/800x450.png?text=Demo+Image",
+    "uploadDate": "2023-01-04T00:00:00Z"
+  },
+  {
+    "id": "demo-text-1",
+    "name": "Sample Text",
+    "description": "A sample text file for preview testing.",
+    "category": "documents",
+    "accessLevel": "public",
+    "fileUrl": "https://raw.githubusercontent.com/github/gitignore/main/README.md",
+    "uploadDate": "2023-01-05T00:00:00Z"
+  }
+]

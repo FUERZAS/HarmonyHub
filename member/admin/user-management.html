@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Admin || User Management</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/user-management.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+                    <li><a href="user-management.html" class="nav-link active"><span>👥</span> User Management</a></li>
+                    <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Admin User</p>
+                        <p class="user-role">Administrator</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>User Management</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- User Management Controls -->
+                <div class="management-controls">
+                    <div class="search-box">
+                        <input type="text" id="user-search" placeholder="Search users by name or email...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="role-filter">
+                            <option value="all">All Roles</option>
+                            <option value="staff">Staff</option>
+                            <option value="member">Members</option>
+                        </select>
+                        <select id="status-filter">
+                            <option value="all">All Status</option>
+                            <option value="verified">Verified</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- User Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            👥
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="total-users">0</h3>
+                            <p class="stat-label">Total Users</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-green">
+                            ✅
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="verified-users">0</h3>
+                            <p class="stat-label">Verified Users</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-orange">
+                            ⏳
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="pending-users">0</h3>
+                            <p class="stat-label">Pending Verification</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-purple">
+                            👑
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="staff-users">0</h3>
+                            <p class="stat-label">Staff Users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Grid -->
+                <div class="users-grid" id="users-grid">
+                    <!-- Users will be populated here dynamically -->
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="loading-indicator" id="loading-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading users...</p>
+                </div>
+
+                <!-- No Users Message -->
+                <div class="no-users-message" id="no-users-message" style="display: none;">
+                    <i class="fas fa-users"></i>
+                    <h3>No users found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div class="modal" id="user-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>User Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="user-detail-content">
+                <!-- User details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Permissions Modal -->
+    <div class="modal" id="permissions-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>User Permissions</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="permissions-content">
+                <!-- Permissions will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-tabs">
+            <button class="notif-tab active" data-tab="all">All</button>
+            <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="../admin/js/base.js"></script>
+    <script src="../admin/js/user-management.js"></script>
+    <script src="../notification.js"></script>
+</body>
+</html>

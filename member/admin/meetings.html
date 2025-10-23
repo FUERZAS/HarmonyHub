@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Harmony Hub - Admin || Online Meetings</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/meetings.css" />
+  <link rel="icon" type="image/x-icon" href="../logo.jpg"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- SweetAlert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="brand-logo">
+          <img src="../logo.jpg" alt="Harmony Hub Logo"/>
+        </div>
+        <h2>Harmony Hub</h2>
+      </div>
+      <nav class="nav-menu">
+        <ul>
+          <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+          <li><a href="user-management.html" class="nav-link"><span>👥</span> User Management</a></li>
+          <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+          <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+          <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+          <li><a href="meetings.html" class="nav-link active"><span>🎬</span> Online Meetings</a></li>
+          <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+          <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+        </ul>
+      </nav>
+      <div class="user-section">
+        <div class="user-info">
+          <img class="user-avatar">
+          <div class="user-details">
+            <p class="user-name">Admin User</p>
+            <p class="user-role">Administrator</p>
+          </div>
+        </div>
+        <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header">
+        <button class="sidebar-toggle">☰</button>
+        <h1>Online Meetings</h1>
+        <div class="header-actions">
+          <button id="add-meeting-btn" class="btn-primary">➕ Schedule Meeting</button>
+          <button id="notification-btn" class="notification-btn">🔔</button>
+        </div>
+      </header>
+
+      <div class="content-wrapper">
+        <!-- Meeting Cards -->
+        <div id="meetings-container" class="meetings-container">
+          
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notifications Dropdown -->
+  <div id="notifications-dropdown" class="notifications-dropdown">
+    <div class="notifications-header">
+      <h3>Notifications</h3>
+      <div class="notif-tabs">
+        <button class="notif-tab active" data-tab="all">All</button>
+        <button class="notif-tab" data-tab="unread">Unread</button>
+      </div>
+    </div>
+    <div class="notifications-list" id="notifications-list">
+      <!-- Notifications injected here -->
+    </div>
+  </div>
+
+  <!-- Add Meeting Modal -->
+  <div id="add-meeting-modal" class="event-modal">
+    <h3>Schedule New Meeting</h3>
+    <form id="meeting-form">
+      <label>Personal Meeting ID</label>
+      <input type="text" id="meeting-id" required />
+
+      <label>Passcode</label>
+      <input type="text" id="meeting-passcode" required />
+
+      <label>Date</label>
+      <input type="date" id="meeting-date" required />
+
+      <label>Time</label>
+      <input type="time" id="meeting-time" required />
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" class="close-btn" id="close-meeting-modal">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Attendance Modal -->
+    <div id="attendance-modal" class="event-modal">
+    <h3>Take Attendance</h3>
+    <form id="attendance-form">
+        <div id="attendance-users" class="attendance-users">
+        <!-- Users (except admins) injected dynamically -->
+        </div>
+        <div class="modal-actions">
+        <button type="submit" class="btn-primary">💾 Save Attendance</button>
+        <button type="button" class="close-btn" id="close-attendance-modal">❌ Cancel</button>
+        </div>
+    </form>
+    </div>
+    
+    <!-- View Attendance Modal -->
+    <div id="view-attendance-modal" class="event-modal">
+    <h3>Attendance Records</h3>
+    <div id="view-attendance-users" class="attendance-users">
+        <!-- Attendance will load here -->
+    </div>
+    <div class="modal-actions">
+        <button type="button" class="close-btn" id="close-view-attendance-modal">❌ Close</button>
+    </div>
+    </div>
+
+
+  <script src="../firebase-config.js"></script>
+  <script src="../cloudinary-config.js"></script>
+  <script src="../admin/js/base.js"></script>
+  <script src="../admin/js/meetings.js"></script>
+  <script src="../notification.js"></script>
+</body>
+</html>

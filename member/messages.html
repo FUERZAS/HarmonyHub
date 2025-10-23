@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Messages</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/messages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+<div class="member-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="brand-logo">
+                <img src="../logo.jpg" alt="Harmony Hub Logo">
+            </div>
+            <h2>Harmony Hub</h2>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+                <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+                <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+                <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                <li><a href="messages.html" class="nav-link active"><span>💬</span> Messages</a></li>
+            </ul>
+        </nav>
+        <div class="user-section">
+            <div class="user-info">
+                <img class="user-avatar">
+                <div class="user-details">
+                    <p class="user-name">Member User</p>
+                    <p class="user-role">Member</p>
+                </div>
+            </div>
+            <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <header class="content-header">
+            <button class="sidebar-toggle">☰</button>
+            <h1>Messages</h1>
+            <div class="header-actions">
+                <button id="notification-btn" class="notification-btn">🔔</button>
+            </div>
+        </header>
+
+        <div class="content-wrapper messages-wrapper">
+            <div class="messages-container">
+                <!-- Chat List -->
+                <aside class="chat-list" id="chat-list">
+                    <div class="chat-search">
+                        <input type="text" placeholder="Search users..." id="search-input">
+                        <div class="search-results" id="search-results">
+                            <!-- Search results will appear here -->
+                        </div>
+                    </div>
+                    <!-- Chat threads or user list will be appended here by JS -->
+                </aside>
+
+                <!-- Chat Window -->
+                <section class="chat-window" id="chat-window">
+                    <div class="chat-header" id="chat-header">
+                        Select a chat
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Messages appear here -->
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="message-input" placeholder="Type a message...">
+                        <button id="send-btn">Send</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Notifications Dropdown -->
+<div id="notifications-dropdown" class="notifications-dropdown">
+    <div class="notifications-header">
+        <h3>Notifications</h3>
+        <div class="notif-tabs">
+            <button class="notif-tab active" data-tab="all">All</button>
+            <button class="notif-tab" data-tab="unread">Unread</button>
+        </div>
+    </div>
+    <div class="notifications-list" id="notifications-list">
+        <!-- Notifications will be injected here -->
+    </div>
+</div>
+
+<script src="../firebase-config.js"></script>
+<script src="../cloudinary-config.js"></script>
+<script src="js/base.js"></script>
+<script src="js/messages.js"></script>
+<script src="../notification.js"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harmony Hub - Admin || AI Assistant</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="/admin/css/assist.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="../logo.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+  <style>
+    /* Assist page responsive tweaks (mobile-first adjustments) */
+    @media (max-width: 900px) {
+      body { font-size: 16px; }
+      .admin-container { display:block; }
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 12px; }
+      .chat-container { width: 100%; }
+      .pitch-check-panel { width: 100%; margin-top: 16px; }
+      .pitch-controls button, .pitch-controls select, .pitch-controls input[type="range"] { padding: 12px 14px; font-size:16px; }
+      .pitch-display { flex-direction: column; align-items: stretch; }
+      #pitch-meter { width: 100% !important; }
+      .chat-input-container input { font-size: 16px; padding: 12px; }
+      .chat-input-container button { padding: 12px 14px; }
+      #play-guide, #stop-guide { padding: 10px 12px; }
+    }
+    @media (min-width: 901px) {
+      .main-content { margin-left: 260px; }
+      .sidebar { display:block; width: 240px; position: fixed; }
+    }
+  </style>
+
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="brand-logo">
+          <img src="../logo.jpg" alt="Harmony Hub Logo">
+        </div>
+        <h2>Harmony Hub</h2>
+      </div>
+      <nav class="nav-menu">
+        <ul>
+            <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+            <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+            <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+            <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+            <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+            <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+            <li><a href="messages.html" class="nav-link active"><span>💬</span> Messages</a></li>
+        </ul>
+      </nav>
+      <div class="user-section">
+        <div class="user-info">
+          <img class="user-avatar">
+          <div class="user-details">
+            <p class="user-name">Admin User</p>
+            <p class="user-role">Administrator</p>
+          </div>
+        </div>
+        <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <button class="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+          <h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;font-size:1.4rem;">AI Assistant</h1>
+        </div>
+        <div class="header-actions">
+          <button id="notification-btn" class="notification-btn" aria-label="Notifications">🔔</button>
+        </div>
+      </header>
+
+      <div class="content-wrapper">
+        <!-- Chatbox -->
+        <div class="chat-container">
+          <div id="chat-box" class="chat-box"></div>
+          <div class="chat-input-container">
+            <input type="text" id="user-input" placeholder="Ask me anything...">
+            <button id="send-btn">Send</button>
+          </div>
+        </div>
+        
+        <!-- Pitch Check / Vocal Trainer -->
+        <div class="pitch-check-panel" id="pitch-check-panel" style="margin-top:20px;">
+          <h3>Vocal Pitch Checker</h3>
+          <div class="pitch-controls">
+            <select id="target-note">
+              <!-- simple octave range C3..C5 -->
+              <option value="C3">C3</option>
+              <option value="D3">D3</option>
+              <option value="E3">E3</option>
+              <option value="F3">F3</option>
+              <option value="G3">G3</option>
+              <option value="A3">A3</option>
+              <option value="B3">B3</option>
+              <option value="C4">C4</option>
+              <option value="D4">D4</option>
+              <option value="E4">E4</option>
+              <option value="F4">F4</option>
+              <option value="G4">G4</option>
+              <option value="A4" selected>A4</option>
+              <option value="B4">B4</option>
+              <option value="C5">C5</option>
+            </select>
+            <button id="start-pitch" class="btn-primary">Start</button>
+            <button id="stop-pitch" class="btn-secondary" disabled>Stop</button>
+          </div>
+
+          <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
+            <div id="model-status" style="font-size:0.95rem;color:#555;">Model: Unknown</div>
+            <label style="font-size:0.9rem;color:#444;"><input type="checkbox" id="force-fallback" style="margin-right:8px;"> Force fallback</label>
+          </div>
+
+          <!-- Tolerance slider: how many cents around target are considered 'on-pitch' -->
+          <div style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+            <label for="tolerance-slider" style="font-size:0.95rem;color:#444;">Tolerance (cents):</label>
+            <input id="tolerance-slider" type="range" min="5" max="200" step="1" value="20">
+            <div id="tolerance-value" style="min-width:40px; text-align:left; color:#333;">20</div>
+          </div>
+
+          <!-- Audio guide controls -->
+          <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+            <button id="play-guide" class="btn-primary">Play Guide</button>
+            <button id="stop-guide" class="btn-secondary" disabled>Stop Guide</button>
+            <label style="font-size:0.9rem;color:#444;margin-left:8px;">Guide Vol</label>
+            <input id="guide-volume" type="range" min="0" max="1" step="0.01" value="0.6" style="width:120px;">
+          </div>
+          <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+            <label style="font-size:0.95rem;color:#444;">Guide Mode:</label>
+            <select id="guide-mode" style="min-width:160px;">
+              <option value="sine">Sine (continuous)</option>
+              <option value="arpeggio">Arpeggio (synth)</option>
+              <option value="sample">Use uploaded sample (mp3)</option>
+            </select>
+            <input id="guide-sample-file" type="file" accept="audio/*" style="margin-left:8px;">
+            <div id="guide-countdown" style="font-weight:600;color:#333;margin-left:12px;min-width:34px;text-align:center;"></div>
+          </div>
+
+          <div class="pitch-display" style="margin-top:12px; display:flex; gap:16px; align-items:center;">
+            <div style="flex:1;">
+              <div id="detected-note" style="font-size:1.4rem; font-weight:600;">--</div>
+              <div id="detected-freq" style="color:#666;">Freq: -- Hz</div>
+            </div>
+            <div style="width:220px;">
+              <div style="height:14px;background:#e9ecef;border-radius:7px;overflow:hidden;">
+                <div id="pitch-meter" style="height:100%;width:50%;background:#dee2ff"></div>
+              </div>
+              <div id="pitch-cents" style="text-align:center;margin-top:6px;color:#333;">±0 c</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notifications Dropdown -->
+  <div id="notifications-dropdown" class="notifications-dropdown">
+    <div class="notifications-header">
+      <h3>Notifications</h3>
+      <div class="notif-tabs">
+        <button class="notif-tab active" data-tab="all">All</button>
+        <button class="notif-tab" data-tab="unread">Unread</button>
+      </div>
+    </div>
+    <div class="notifications-list" id="notifications-list">
+      <!-- Notifications injected here -->
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../firebase-config.js"></script>
+  <script src="../cloudinary-config.js"></script>
+  <script src="/member/js/base.js"></script>
+  <!-- TensorFlow.js and CREPE (for higher-accuracy pitch detection) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@magenta/music@1.28.1/dist/magenta.min.js"></script>
+  <script src="/member/js/pitch-check.js"></script>
+  <script src="../notification.js"></script>
+  <script src="../admin/js/assist.js"></script>
+  <script>
+    // Mobile sidebar toggle
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.querySelector('.sidebar-toggle');
+      const sidebar = document.querySelector('.sidebar');
+      if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
+          if (window.innerWidth <= 900) {
+            sidebar.style.display = sidebar.style.display === 'block' ? 'none' : 'block';
+          } else {
+            sidebar.classList.toggle('collapsed');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

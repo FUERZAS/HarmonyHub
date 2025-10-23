@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Admin || Dashboard</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link active"><span>📊</span> Dashboard</a></li>
+                    <li><a href="user-management.html" class="nav-link"><span>👥</span> User Management</a></li>
+                    <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Admin User</p>
+                        <p class="user-role">Administrator</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Quick Actions & Search -->
+                <div class="top-controls">
+                    <div class="quick-actions">
+                        <button class="qa-btn" id="qa-new-user">+ New User <span class="qa-badge" id="badge-new-user">0</span></button>
+                        <button class="qa-btn" id="qa-new-resource">+ Add Resource <span class="qa-badge" id="badge-new-resource">0</span></button>
+                        <button class="qa-btn" id="qa-new-schedule">+ New Schedule <span class="qa-badge" id="badge-new-schedule">0</span></button>
+                        <button class="qa-btn" id="qa-send-announcement">📢 Announcement <span class="qa-badge" id="badge-new-announcement">0</span></button>
+                    </div>
+                    <div class="search-box">
+                        <input type="search" id="dashboard-search" placeholder="Search users, resources, schedules...">
+                    </div>
+                </div>
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            👥
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value">1,248</h3>
+                            <p class="stat-label">Total Users</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-green">
+                            📅
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value">42</h3>
+                            <p class="stat-label">Today's Schedules</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-purple">
+                            📁
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value">524</h3>
+                            <p class="stat-label">Resources</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-orange">
+                            🎬
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value">12</h3>
+                            <p class="stat-label">Live Meetings</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upcoming Schedules -->
+                <h2>Upcoming Schedules</h2>
+                <div class="schedules-container">
+                    <div class="schedule-card">
+                        <div class="schedule-header">
+                            <h3 class="schedule-title">Team Planning Session</h3>
+                            <span class="schedule-time">10:00 AM - 11:30 AM</span>
+                        </div>
+                        <div class="schedule-details">
+                            <div class="schedule-detail">
+                                <span>👤</span> Facilitator: Sarah Johnson
+                            </div>
+                            <div class="schedule-detail">
+                                <span>📍</span> Conference Room A
+                            </div>
+                            <div class="schedule-detail">
+                                <span>👥</span> 12 participants
+                            </div>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="schedule-btn primary">View Details</button>
+                            <button class="schedule-btn secondary">Reschedule</button>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-card urgent">
+                        <div class="schedule-header">
+                            <h3 class="schedule-title">Client Presentation</h3>
+                            <span class="schedule-time">2:00 PM - 3:00 PM</span>
+                        </div>
+                        <div class="schedule-details">
+                            <div class="schedule-detail">
+                                <span>👤</span> Presenter: Michael Chen
+                            </div>
+                            <div class="schedule-detail">
+                                <span>📍</span> Main Auditorium
+                            </div>
+                            <div class="schedule-detail">
+                                <span>👥</span> 25 participants
+                            </div>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="schedule-btn primary">View Details</button>
+                            <button class="schedule-btn secondary">Send Reminder</button>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-card">
+                        <div class="schedule-header">
+                            <h3 class="schedule-title">Training Workshop</h3>
+                            <span class="schedule-time">4:00 PM - 5:30 PM</span>
+                        </div>
+                        <div class="schedule-details">
+                            <div class="schedule-detail">
+                                <span>👤</span> Instructor: Dr. Emily Rodriguez
+                            </div>
+                            <div class="schedule-detail">
+                                <span>📍</span> Training Room B
+                            </div>
+                            <div class="schedule-detail">
+                                <span>👥</span> 18 participants
+                            </div>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="schedule-btn primary">View Details</button>
+                            <button class="schedule-btn secondary">Check Resources</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="activity-card">
+                    <h3 class="chart-title">Recent Activity</h3>
+                    <ul class="activity-list">
+                        <li class="activity-item">
+                            <div class="activity-icon icon-blue">
+                                👥
+                            </div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">New User Registration</h4>
+                                <p class="activity-details">John Doe registered as a new member</p>
+                                <p class="activity-time">10 minutes ago</p>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon icon-green">
+                                📅
+                            </div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">Schedule Created</h4>
+                                <p class="activity-details">Team meeting scheduled for Friday</p>
+                                <p class="activity-time">1 hour ago</p>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon icon-purple">
+                                📁
+                            </div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">Resource Added</h4>
+                                <p class="activity-details">New meditation guide uploaded by Dr. Smith</p>
+                                <p class="activity-time">3 hours ago</p>
+                            </div>
+                        </li>
+                        
+                        <li class="activity-item">
+                            <div class="activity-icon icon-orange">
+                                🎬
+                            </div>
+                            <div class="activity-content">
+                                <h4 class="activity-title">Meeting Started</h4>
+                                <p class="activity-details">Group therapy session started by Dr. Anderson</p>
+                                <p class="activity-time">5 hours ago</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-actions-top">
+                <div class="notif-tabs">
+                    <button class="notif-tab active" data-tab="all">All</button>
+                    <button class="notif-tab" data-tab="unread">Unread</button>
+                </div>
+                <button id="notif-mark-all" class="notif-mark-all">Mark all read</button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="js/base.js"></script>
+    <script src="../notification.js"></script>
+    <script src="/admin/js/dashboard.js"></script>
+</body>
+</html>

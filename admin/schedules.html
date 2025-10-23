@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Harmony Hub - Admin || Schedules</title>
+  <link rel="stylesheet" href="../admin/css/base.css" />
+  <link rel="stylesheet" href="../admin/css/schedules.css" />
+  <link rel="icon" type="image/x-icon" href="../logo.jpg"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- SweetAlert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="brand-logo">
+          <img src="../logo.jpg" alt="Harmony Hub Logo"/>
+        </div>
+        <h2>Harmony Hub</h2>
+      </div>
+      <nav class="nav-menu">
+        <ul>
+          <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+          <li><a href="user-management.html" class="nav-link"><span>👥</span> User Management</a></li>
+          <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+          <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+          <li><a href="schedules.html" class="nav-link active"><span>📅</span> Schedules</a></li>
+          <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+          <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+          <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+        </ul>
+      </nav>
+      <div class="user-section">
+        <div class="user-info">
+          <img class="user-avatar">
+          <div class="user-details">
+            <p class="user-name">Admin User</p>
+            <p class="user-role">Administrator</p>
+          </div>
+        </div>
+        <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="content-header">
+            <button class="sidebar-toggle">☰</button>
+            <h1>Schedules</h1>
+            <div class="header-actions">
+                <button id="add-schedule-btn" class="btn-primary">➕ Add Schedule</button>
+                <button id="notification-btn" class="notification-btn">🔔</button>
+            </div>
+        </header>
+
+      <div class="content-wrapper">
+        <!-- Calendar -->
+        <div id="calendar"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notifications Dropdown -->
+  <div id="notifications-dropdown" class="notifications-dropdown">
+    <div class="notifications-header">
+      <h3>Notifications</h3>
+      <div class="notif-tabs">
+        <button class="notif-tab active" data-tab="all">All</button>
+        <button class="notif-tab" data-tab="unread">Unread</button>
+      </div>
+    </div>
+    <div class="notifications-list" id="notifications-list">
+      <!-- Notifications injected here -->
+    </div>
+  </div>
+
+    <!-- Add Schedule Modal -->
+    <div id="add-schedule-modal" class="event-modal">
+    <h3>Add New Schedule</h3>
+    <form id="schedule-form">
+        <label>Title</label>
+        <input type="text" id="schedule-title" required />
+
+        <label>Start Date</label>
+        <input type="date" id="schedule-start-date" required />
+
+        <label>Start Time</label>
+        <input type="time" id="schedule-start-time" required />
+
+        <label>End Date</label>
+        <input type="date" id="schedule-end-date" />
+
+        <label>End Time</label>
+        <input type="time" id="schedule-end-time" />
+
+        <label>Type</label>
+        <select id="schedule-type">
+        <option value="meeting">Meeting</option>
+        <option value="performance">Performance</option>
+        <option value="activity">Activity</option>
+        </select>
+
+        <div class="modal-actions">
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" class="close-btn" id="close-modal">Cancel</button>
+        </div>
+    </form>
+    </div>
+
+  <script src="../firebase-config.js"></script>
+  <script src="../cloudinary-config.js"></script>
+  <script src="../admin/js/base.js"></script>
+  <script src="../admin/js/schedules.js"></script>
+  <script src="../notification.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const calendarEl = document.getElementById("calendar");
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        selectable: true,
+        editable: false,
+        events: [], // will be filled dynamically from Firebase
+        dateClick: (info) => {
+          Swal.fire("Selected Date", info.dateStr, "info");
+        },
+        eventClick: (info) => {
+          Swal.fire({
+            title: info.event.title,
+            html: `<p><strong>Start:</strong> ${info.event.start}</p>
+                   <p><strong>End:</strong> ${info.event.end || "N/A"}</p>`,
+            icon: "info"
+          });
+        }
+      });
+      calendar.render();
+    });
+  </script>
+</body>
+</html>

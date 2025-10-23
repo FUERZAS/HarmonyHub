@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Resources</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/resources.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="member-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+                    <li><a href="resources.html" class="nav-link active"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Member User</p>
+                        <p class="user-role">Member</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>Resources</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Resources Header -->
+                <div class="resources-header">
+                    <h2>Community Resources</h2>
+                    <p>Access documents, guides, and materials shared by your community</p>
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="resource-search" placeholder="Search resources...">
+                        </div>
+                        <div class="filter-options">
+                            <select id="category-filter">
+                                <option value="all">All Categories</option>
+                                <option value="documents">Documents</option>
+                                <option value="media">Media</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <select id="sort-by">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="name">Name A-Z</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resource Categories -->
+                <div class="categories-section">
+                    <h3>Browse by Category</h3>
+                    <div class="categories-grid">
+                        <div class="category-card" data-category="all">
+                            <div class="category-icon">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <h4>All Resources</h4>
+                            <p>View all available materials</p>
+                            <span class="resource-count">24</span>
+                        </div>
+                        <div class="category-card" data-category="documents">
+                            <div class="category-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h4>Documents</h4>
+                            <p>PDFs, Word files, and more</p>
+                            <span class="resource-count">8</span>
+                        </div>
+                        <div class="category-card" data-category="media">
+                            <div class="category-icon">
+                                <i class="fas fa-photo-video"></i>
+                            </div>
+                            <h4>Media</h4>
+                            <p>Images, videos, and audio</p>
+                            <span class="resource-count">3</span>
+                        </div>
+                        <div class="category-card" data-category="other">
+                            <div class="category-icon">
+                                <i class="fas fa-archive"></i>
+                            </div>
+                            <h4>Other</h4>
+                            <p>Miscellaneous resources</p>
+                            <span class="resource-count">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources List -->
+                <div class="resources-section">
+                    <div class="section-header">
+                        <h3>All Resources</h3>
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="grid">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button class="view-btn" data-view="list">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="resources-grid" id="resources-container">
+                        <!-- Resource items will be populated here -->
+                        <div class="resource-card" data-category="documents">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="resource-actions">
+                                    <button class="action-btn favorite-btn" title="Add to favorites">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="resource-content">
+                                <h4>Community Guidelines</h4>
+                                <p>Official guidelines for community participation and engagement.</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">2.4 MB</span>
+                                    <span class="resource-date">Added: Mar 10, 2023</span>
+                                </div>
+                            </div>
+                            <div class="resource-footer">
+                                <span class="resource-category">Documents</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-card" data-category="guides">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="fas fa-book-open"></i>
+                                </div>
+                                <div class="resource-actions">
+                                    <button class="action-btn favorite-btn" title="Add to favorites">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="resource-content">
+                                <h4>Project Setup Guide</h4>
+                                <p>Step-by-step instructions for setting up new community projects.</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">1.1 MB</span>
+                                    <span class="resource-date">Added: Feb 28, 2023</span>
+                                </div>
+                            </div>
+                            <div class="resource-footer">
+                                <span class="resource-category">Guides</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-card" data-category="templates">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="fas fa-clipboard"></i>
+                                </div>
+                                <div class="resource-actions">
+                                    <button class="action-btn favorite-btn" title="Add to favorites">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="resource-content">
+                                <h4>Meeting Agenda Template</h4>
+                                <p>Standard template for creating meeting agendas.</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">0.5 MB</span>
+                                    <span class="resource-date">Added: Mar 5, 2023</span>
+                                </div>
+                            </div>
+                            <div class="resource-footer">
+                                <span class="resource-category">Templates</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-card" data-category="media">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="fas fa-images"></i>
+                                </div>
+                                <div class="resource-actions">
+                                    <button class="action-btn favorite-btn" title="Add to favorites">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="resource-content">
+                                <h4>Community Photos</h4>
+                                <p>Collection of photos from recent community events.</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">15.2 MB</span>
+                                    <span class="resource-date">Added: Mar 12, 2023</span>
+                                </div>
+                            </div>
+                            <div class="resource-footer">
+                                <span class="resource-category">Media</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-card" data-category="documents">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="fas fa-file-word"></i>
+                                </div>
+                                <div class="resource-actions">
+                                    <button class="action-btn favorite-btn" title="Add to favorites">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="resource-content">
+                                <h4>Annual Report 2022</h4>
+                                <p>Comprehensive report of community activities and achievements.</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">3.7 MB</span>
+                                    <span class="resource-date">Added: Jan 15, 2023</span>
+                                </div>
+                            </div>
+                            <div class="resource-footer">
+                                <span class="resource-category">Documents</span>
+                            </div>
+                        </div>
+                        
+                        <div class="resource-card" data-category="guides">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="fas fa-laptop-code"></i>
+                                </div>
+                                <div class="resource-actions">
+                                    <button class="action-btn favorite-btn" title="Add to favorites">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn download-btn" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="resource-content">
+                                <h4>Platform Tutorial</h4>
+                                <p>How to use the Harmony Hub platform effectively.</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">1.8 MB</span>
+                                    <span class="resource-date">Added: Feb 20, 2023</span>
+                                </div>
+                            </div>
+                            <div class="resource-footer">
+                                <span class="resource-category">Guides</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-tabs">
+                <button class="notif-tab active" data-tab="all">All</button>
+                <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+            <button class="notif-mark-all" title="Mark visible as read">Mark all read</button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <!-- Resource Detail Modal -->
+    <div id="resource-modal" class="resource-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Resource Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="resource-preview">
+                    <div class="preview-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="preview-info">
+                        <h4 id="preview-title">Resource Title</h4>
+                        <p id="preview-description">Resource description will appear here.</p>
+                        <div class="preview-meta">
+                            <span id="preview-size">Size: 0 MB</span>
+                            <span id="preview-date">Added: Unknown</span>
+                            <span id="preview-category">Category: Unknown</span>
+                        </div>
+                    </div>
+                    <!-- Player controls (injected for media) -->
+                    <div class="modal-player-controls" id="modal-player-controls" style="display:none;">
+                        <button id="modal-play-pause" class="action-btn" title="Play/Pause"><i class="fas fa-play"></i></button>
+                        <div class="modal-progress">
+                            <div class="modal-progress-bar" id="modal-progress-bar"></div>
+                        </div>
+                        <div class="modal-times">
+                            <span id="modal-current-time">0:00</span>
+                            <span> / </span>
+                            <span id="modal-total-time">0:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" id="modal-download">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="btn-secondary" id="modal-favorite">
+                        <i class="far fa-heart"></i> Add to Favorites
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="js/base.js"></script>
+    <script src="js/resources.js"></script>
+    <script src="../notification.js"></script>
+</body>
+</html>

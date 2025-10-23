@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Hub - Admin || Announcements</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/announcements.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Firebase SDK first -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="brand-logo">
+                    <img src="../logo.jpg" alt="Harmony Hub Logo">
+                </div>
+                <h2>Harmony Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="dashboard.html" class="nav-link"><span>📊</span> Dashboard</a></li>
+                    <li><a href="user-management.html" class="nav-link"><span>👥</span> User Management</a></li>
+                    <li><a href="resources.html" class="nav-link"><span>📁</span> Resources</a></li>
+                    <li><a href="announcements.html" class="nav-link active"><span>📢</span> Announcements</a></li>
+                    <li><a href="schedules.html" class="nav-link"><span>📅</span> Schedules</a></li>
+                    <li><a href="meetings.html" class="nav-link"><span>🎬</span> Online Meetings</a></li>
+                    <li><a href="assist.html" class="nav-link"><span>🤖</span> AI Assistant</a></li>
+                    <li><a href="messages.html" class="nav-link"><span>💬</span> Messages</a></li>
+                </ul>
+            </nav>
+            <div class="user-section">
+                <div class="user-info">
+                    <img class="user-avatar">
+                    <div class="user-details">
+                        <p class="user-name">Admin User</p>
+                        <p class="user-role">Administrator</p>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" id="logout-btn">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="sidebar-toggle">☰</button>
+                <h1>Announcements</h1>
+                <div class="header-actions">
+                    <button id="notification-btn" class="notification-btn">🔔</button>
+                    <button id="create-announcement-btn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Announcement
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Announcement Management Controls -->
+                <div class="management-controls">
+                    <div class="search-box">
+                        <input type="text" id="announcement-search" placeholder="Search announcements...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="status-filter">
+                            <option value="all">All Status</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                        <select id="audience-filter">
+                            <option value="all">All Audiences</option>
+                            <option value="all_users">All Users</option>
+                            <option value="staff_only">Staff Only</option>
+                            <option value="members_only">Members Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Announcement Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            📢
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="total-announcements">0</h3>
+                            <p class="stat-label">Total Announcements</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-green">
+                            📤
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="published-announcements">0</h3>
+                            <p class="stat-label">Published</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon icon-orange">
+                            📝
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="draft-announcements">0</h3>
+                            <p class="stat-label">Drafts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcements Cards Container -->
+                <div class="cards-container" id="announcements-list">
+                    <!-- Example Card -->
+                    <div class="announcement-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Announcement Title</h3>
+                            <span class="card-status published">Published</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-audience"><strong>Audience:</strong> All Users</p>
+                            <p class="card-date"><strong>Date:</strong> Sept 13, 2025</p>
+                            <p class="card-views"><strong>Views:</strong> 120</p>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-secondary">Preview</button>
+                            <button class="btn btn-sm btn-primary">Edit</button>
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="loading-indicator" id="loading-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading announcements...</p>
+                </div>
+
+                <!-- No Announcements Message -->
+                <div class="no-data-message" id="no-announcements-message" style="display: none;">
+                    <i class="fas fa-bullhorn"></i>
+                    <h3>No announcements found</h3>
+                    <p>Try adjusting your search or filters, or create a new announcement</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Announcement Modal -->
+    <div class="modal" id="announcement-modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 id="modal-title">Create New Announcement</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="announcement-form">
+                    <div class="form-group">
+                        <label for="announcement-title">Title *</label>
+                        <input type="text" id="announcement-title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="announcement-content">Content *</label>
+                        <textarea id="announcement-content" rows="6" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="announcement-audience">Audience *</label>
+                            <select id="announcement-audience" required>
+                                <option value="all_users">All Users</option>
+                                <option value="staff_only">Staff Only</option>
+                                <option value="members_only">Members Only</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="announcement-status">Status *</label>
+                            <select id="announcement-status" required>
+                                <option value="published">Published</option>
+                                <option value="draft">Draft</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-announcement">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="save-announcement">Save Announcement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Announcement Modal -->
+    <div class="modal" id="preview-modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>Announcement Preview</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="preview-content">
+                <!-- Preview will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-dropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <div class="notif-tabs">
+            <button class="notif-tab active" data-tab="all">All</button>
+            <button class="notif-tab" data-tab="unread">Unread</button>
+            </div>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script src="../cloudinary-config.js"></script>
+    <script src="js/base.js"></script>
+    <script src="js/announcements.js"></script>
+    <script src="../notification.js"></script>
+</body>
+</html>
