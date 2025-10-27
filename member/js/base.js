@@ -150,14 +150,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Clicking outside the sidebar when it's open should close it on mobile
     document.addEventListener('click', function(event) {
         if (
             window.innerWidth <= 1024 &&
             !sidebar.contains(event.target) &&
             !sidebarToggle.contains(event.target) &&
-            sidebar.classList.contains('mobile-collapsed')
+            !sidebar.classList.contains('mobile-collapsed')
         ) {
-            sidebar.classList.remove('mobile-collapsed');
+            sidebar.classList.add('mobile-collapsed');
             updateToggleIcon();
         }
     });
@@ -223,11 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkScreenSize() {
+        // On small screens hide the sidebar by default so it doesn't block content
         if (window.innerWidth <= 1024) {
-            sidebar.classList.remove('mobile-collapsed');
+            sidebar.classList.add('mobile-collapsed');
             if (sidebarToggle) sidebarToggle.style.display = 'flex';
             updateToggleIcon();
         } else {
+            // On larger screens keep the sidebar visible
             sidebar.classList.remove('mobile-collapsed');
             if (sidebarToggle) sidebarToggle.style.display = 'none';
         }
