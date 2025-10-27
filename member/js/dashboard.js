@@ -44,11 +44,51 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Count announcements
-        db.ref('announcements').once('value').then(snapshot => {
-            const total = snapshot.exists() ? snapshot.numChildren() : 0;
-            announcementsCountEl.textContent = total;
-        });
+        // Prefer showing unread announcements for the signed-in user
+        (async () => {
+            try {
+                const snap = await db.ref('announcements').once('value');
+                const announcements = snap.val() || {};
+                const authUserId = (firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser.uid : (userData && userData.uid) ? userData.uid : null;
+                if (!authUserId) {
+                    // fallback to total
+                    announcementsCountEl.textContent = Object.keys(announcements).length;
+                    return;
+                }
+
+                const readSnap = await db.ref(`users/${authUserId}/readAnnouncements`).once('value');
+                const readMap = readSnap.val() || {};
+
+                let unread = 0;
+                Object.entries(announcements).forEach(([id, ann]) => {
+                    if (!ann) return;
+                    if (ann.status && ann.status !== 'published') return; // only count published
+                    const aud = ann.audience || 'all_users';
+                    // visible to members
+                    if (aud !== 'all_users' && aud !== 'members_only') return;
+                    if (!readMap[id]) unread++;
+                });
+                announcementsCountEl.textContent = unread;
+            } catch (e) {
+                console.warn('Could not compute unread announcements', e);
+                // fallback
+                db.ref('announcements').once('value').then(snapshot => {
+                    const total = snapshot.exists() ? snapshot.numChildren() : 0;
+                    announcementsCountEl.textContent = total;
+                });
+            }
+        })();
     }
+
+    // Listen for announcement read events to keep count in sync
+    window.addEventListener('announcementMarkedRead', (e) => {
+        try {
+            const el = announcementsCountEl;
+            if (!el) return;
+            const cur = parseInt(el.textContent || '0', 10);
+            if (!isNaN(cur) && cur > 0) el.textContent = (cur - 1).toString();
+        } catch (err) { /* ignore */ }
+    });
 
     // Recent activity optimization:
     // - Read from a single `activity_table` node (if available) to reduce reads

@@ -23,6 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentField = document.getElementById("announcement-content");
   const audienceField = document.getElementById("announcement-audience");
   const statusField = document.getElementById("announcement-status");
+  const categoryField = document.getElementById("announcement-category");
+  const priorityField = document.getElementById("announcement-priority");
   const previewContent = document.getElementById("preview-content");
   const previewText = document.querySelector(".preview-text");
 
@@ -33,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let editingId = null;
   let canAnnounce = false;
+  let currentUserData = null;
 
   // ---------- AUTH & PERMISSION CHECK ----------
   auth.onAuthStateChanged((user) => {
@@ -46,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     database.ref(`users/${user.uid}`).once("value")
       .then((snap) => {
         const userData = snap.val() || {};
+        currentUserData = userData;
         const role = userData.role || "member";
         canAnnounce = userData.permissions?.canAnnounce === true;
 
@@ -163,7 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="card-body">
         <p class="card-audience"><strong>Audience:</strong> ${audienceText}</p>
         <p class="card-date"><strong>Date:</strong> ${date}</p>
-        <div class="card-message">${ann.content || ''}</div>
+        <div class="card-message">${ann.content ? escapeHtml(ann.content) : ''}</div>
+        <p class="card-views"><strong>Views:</strong> ${Number(ann.views || 0)}</p>
       </div>
       <div class="card-actions">
         <button class="btn btn-secondary btn-sm view-btn">View</button>
@@ -187,6 +192,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return card;
+  }
+
+  // simple HTML escape to reduce XSS when rendering staff content
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // remove repeated leading 'New Announcement' prefixes from titles
+  function stripLeadingNewAnnouncementPrefix(s) {
+    if (!s) return '';
+    return String(s).replace(/^\s*(new\s*announcement\s*[:\-–—]?\s*)/i, '').trim();
   }
 
   // publish/unpublish helper
@@ -224,17 +246,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const content = contentField.value.trim();
     const audience = audienceField.value;
     const status = statusField.value;
+  const category = (categoryField && categoryField.value) || 'general';
+  const priority = (priorityField && priorityField.value) || 'low';
 
     if (!title || !content) {
       Swal.fire("Missing Info", "Please fill out all fields before previewing.", "warning");
       return;
     }
 
+    let audienceText = 'All';
+    switch (audience) {
+      case 'members_only': audienceText = 'Members Only'; break;
+      case 'staff_only': audienceText = 'Staff Only'; break;
+      case 'all_users': audienceText = 'All Users'; break;
+    }
+
     previewContent.style.display = "block";
-    previewContent.querySelector("h3").textContent = title;
-    previewContent.querySelector("p.audience span").textContent = audience;
-    previewContent.querySelector("p.status span").textContent = status || "Unknown";
-    previewText.textContent = content;
+    previewContent.innerHTML = `
+      <h3>${escapeHtml(title)}</h3>
+      <p class="audience"><strong>Audience:</strong> <span>${escapeHtml(audienceText)}</span></p>
+      <p class="status"><strong>Status:</strong> <span>${escapeHtml(status || 'Unknown')}</span></p>
+      <hr/>
+      <div class="preview-text" style="text-align:left;">${escapeHtml(content)}</div>
+    `;
   });
 
   modalForm.addEventListener("submit", async (e) => {
@@ -263,6 +297,8 @@ document.addEventListener("DOMContentLoaded", () => {
       content,
       audience,
       status,
+      category,
+      priority,
       date: isoDate,     // readable format
       timestamp: now,    // unified sorting format
     };
@@ -282,26 +318,39 @@ document.addEventListener("DOMContentLoaded", () => {
         if (activitySnapshot.exists()) {
           activitySnapshot.forEach((child) => {
             child.ref.update({
-              title: `Updated Announcement: ${title}`,
-              message: content,
-              timestamp: now,
-            });
+                title: stripLeadingNewAnnouncementPrefix(title),
+                message: content,
+                timestamp: now,
+              });
           });
         }
 
         Swal.fire("Updated!", "Announcement updated successfully.", "success");
+        // clear editing state
+        editingId = null;
       } else {
         // === CREATE NEW ANNOUNCEMENT ===
-        const newAnnRef = await announcementsRef.push(data);
+        // include author info in the announcement record
+        const toStore = Object.assign({}, data, {
+          authorName: currentUserData?.name || null,
+          authorUid: auth.currentUser?.uid || null,
+          author: currentUserData?.name || null,
+        });
+        const newAnnRef = await announcementsRef.push(toStore);
 
         // ✅ Log to activity_table (only for authorized announcers)
         if (canAnnounce) {
+          const safeTitle = stripLeadingNewAnnouncementPrefix(title);
           const activityData = {
             type: "announcement",
-            title: `New Announcement: ${title}`,
+            title: safeTitle,
             message: content,
             audience,
+            category,
+            priority,
             authorRole: "staff",
+            authorName: currentUserData?.name || null,
+            authorUid: auth.currentUser?.uid || null,
             relatedId: newAnnRef.key,
             timestamp: now,
           };
@@ -310,6 +359,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         Swal.fire("Created!", "Announcement created successfully.", "success");
+        // clear editing state
+        editingId = null;
       }
 
       modal.style.display = "none";
@@ -337,14 +388,18 @@ document.addEventListener("DOMContentLoaded", () => {
             audienceText = "All Users";
       }
 
+      const postedBy = ann.authorName || ann.authorUid || 'Unknown';
+      const category = ann.category || 'General';
+      const priority = ann.priority || 'low';
       Swal.fire({
         title: ann.title,
         html: `
           <p><strong>Audience:</strong> ${audienceText || "All"}</p>
           <p><strong>Status:</strong> ${ann.status || "Unknown"}</p>
-          <p><strong>Date:</strong> ${new Date(ann.date).toLocaleString()}</p>
+          <p><strong>Date:</strong> ${ann.date ? new Date(ann.date).toLocaleString() : 'Unknown'}</p>
           <hr/>
-          <p style="text-align:left;">${ann.content}</p>
+          <p style="text-align:left;">${escapeHtml(ann.content)}</p>
+          <p style="margin-top:12px;"><small>Posted by: ${escapeHtml(postedBy)} &nbsp; Category: ${escapeHtml(category)} &nbsp; Priority: ${escapeHtml(priority)}</small></p>
         `,
         width: 600,
       });
@@ -372,7 +427,8 @@ document.addEventListener("DOMContentLoaded", () => {
       modalTitle.textContent = "Edit Announcement";
       titleField.value = ann.title;
       contentField.value = ann.content;
-      audienceField.value = audienceText || "all";
+      // set the select value to the stored audience code (not human text)
+      audienceField.value = ann.audience || "all_users";
       statusField.value = ann.status || "draft";
       modal.style.display = "flex";
     });

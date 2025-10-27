@@ -107,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="card-body">
           <p class="card-audience"><strong>Audience:</strong> ${formatAudience(ann.audience)}</p>
           <p class="card-date"><strong>Date:</strong> ${formatDate(ann.date)}</p>
+          <p class="card-views"><strong>Views:</strong> ${Number(ann.views || 0)}</p>
         </div>
         <div class="card-actions">
           <button class="btn btn-sm btn-secondary preview-btn">Preview</button>
@@ -133,15 +134,54 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------- Create / Edit ----------------
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    const saveBtn = document.getElementById('save-announcement');
+    const titleEl = document.getElementById("announcement-title");
+    const contentEl = document.getElementById("announcement-content");
+    const audienceEl = document.getElementById("announcement-audience");
+    const categoryEl = document.getElementById("announcement-category");
+    const priorityEl = document.getElementById("announcement-priority");
+    const statusEl = document.getElementById("announcement-status");
 
-    const title = document.getElementById("announcement-title").value.trim();
-    const content = document.getElementById("announcement-content").value.trim();
-    const audience = document.getElementById("announcement-audience").value;
-    const status = document.getElementById("announcement-status").value;
+    const title = (titleEl && titleEl.value || '').trim();
+    const content = (contentEl && contentEl.value || '').trim();
+  const audience = (audienceEl && audienceEl.value) || 'all_users';
+  const status = (statusEl && statusEl.value) || 'published';
+  const category = (categoryEl && categoryEl.value) || 'general';
+  const priority = (priorityEl && priorityEl.value) || 'low';
 
     if (!title || !content) {
       Swal.fire("Error", "Please fill in required fields.", "error");
       return;
+    }
+
+    // Disable save button to avoid double submits
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('disabled'); }
+
+    // Normalize text for duplicate detection
+    function normalizeText(s) {
+      return (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }
+
+    async function findDuplicateAnnouncement(normTitle, normContent, audience, excludeId = null) {
+      // Look at recent announcements (limit to last 200) to avoid heavy reads
+      try {
+        const snap = await announcementsRef.orderByChild('timestamp').limitToLast(200).once('value');
+        const data = snap.val() || {};
+        for (const [id, ann] of Object.entries(data)) {
+          if (!ann) continue;
+          if (excludeId && id === excludeId) continue;
+          // only consider same audience or all_users overlap
+          const annAud = ann.audience || 'all_users';
+          if (audience !== 'all_users' && annAud !== 'all_users' && annAud !== audience) continue;
+          const t = normalizeText(ann.title || '');
+          const c = normalizeText(ann.content || '');
+          // exact match or very close
+          if (t === normTitle && c === normContent) return { id, ann };
+        }
+      } catch (err) {
+        console.warn('Duplicate check failed', err);
+      }
+      return null;
     }
 
     const now = Date.now();
@@ -152,11 +192,35 @@ document.addEventListener("DOMContentLoaded", () => {
       content,
       audience,
       status,
+      category,
+      priority,
       date: isoDate, // keep existing
       timestamp: now // ✅ added for unified sorting
     };
 
-    if (currentEditId) {
+    // Before creating/updating, check for potential duplicates
+    (async () => {
+      const normTitle = normalizeText(title);
+      const normContent = normalizeText(content);
+      const dup = await findDuplicateAnnouncement(normTitle, normContent, audience, currentEditId || null);
+      if (dup) {
+        const d = dup.ann;
+        const createdAt = d && d.date ? new Date(d.date).toLocaleString() : 'unknown';
+        const action = await Swal.fire({
+          title: 'Possible duplicate announcement detected',
+          html: `An announcement with the same title and content already exists (ID: <strong>${dup.id}</strong>)<br>Audience: <strong>${formatAudience(d.audience)}</strong><br>Date: <strong>${createdAt}</strong><br><br>Do you still want to proceed?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Proceed',
+          cancelButtonText: 'Cancel'
+        });
+        if (!action.isConfirmed) {
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('disabled'); }
+          return; // abort submit
+        }
+      }
+
+      if (currentEditId) {
       // ✅ Update existing announcement
       const activityData = {
         type: "announcement",
@@ -175,31 +239,44 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error(err);
           Swal.fire("Error", "Failed to update announcement.", "error");
         });
-    } else {
+      } else {
       // ✅ Create new announcement
       const newRef = announcementsRef.push();
       const newId = newRef.key;
 
-      const activityData = {
+      const activityData = Object.assign({
         type: "announcement",
         refId: newId,
-        ...announcementData,
         createdAt: isoDate,
         timestamp: now
-      };
+      }, announcementData, {
+        authorName: (firebase.auth().currentUser && firebase.auth().currentUser.displayName) || null,
+        authorUid: (firebase.auth().currentUser && firebase.auth().currentUser.uid) || null
+      });
 
-      Promise.all([
-        newRef.set(announcementData),
-        activityRef.child(newId).set(activityData)
-      ])
-        .then(() => Swal.fire("Created", "Announcement created successfully.", "success"))
-        .catch(err => {
-          console.error(err);
-          Swal.fire("Error", "Failed to create announcement.", "error");
+      try {
+        // include author info in announcement record as well
+        const toStore = Object.assign({}, announcementData, {
+          authorName: (firebase.auth().currentUser && firebase.auth().currentUser.displayName) || null,
+          authorUid: (firebase.auth().currentUser && firebase.auth().currentUser.uid) || null,
+          author: (firebase.auth().currentUser && firebase.auth().currentUser.displayName) || null
         });
+
+        await Promise.all([
+          newRef.set(toStore),
+          activityRef.child(newId).set(activityData)
+        ]);
+        await Swal.fire("Created", "Announcement created successfully.", "success");
+      } catch (err) {
+        console.error(err);
+        Swal.fire("Error", "Failed to create announcement.", "error");
+      }
     }
 
-    closeModal(announcementModal);
+      // always re-enable save button and close modal
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('disabled'); }
+      closeModal(announcementModal);
+    })();
   });
 
   // ---------------- Delete ----------------
@@ -232,6 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <p><strong>Status:</strong> ${capitalize(ann.status || "")}</p>
       <p><strong>Audience:</strong> ${formatAudience(ann.audience)}</p>
       <p><strong>Date:</strong> ${formatDate(ann.date)}</p>
+      <p><small>Posted by: ${escapeHtml(ann.authorName || ann.authorUid || 'Unknown')} &nbsp; Category: ${escapeHtml(ann.category || 'General')} &nbsp; Priority: ${escapeHtml(ann.priority || 'low')}</small></p>
       <div class="preview-text">${escapeHtml(ann.content || "").replace(/\n/g, "<br>")}</div>
     `;
     openModal(previewModal);
