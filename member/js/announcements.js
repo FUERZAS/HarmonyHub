@@ -213,7 +213,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (previewTitleEl) previewTitleEl.textContent = announcement.title || 'Untitled';
     if (previewDateEl) previewDateEl.textContent = `Date: ${new Date(announcement.date || announcement.timestamp || Date.now()).toLocaleString()}`;
     if (previewDescriptionEl) previewDescriptionEl.textContent = announcement.content || '';
-    if (previewAuthorEl) previewAuthorEl.textContent = `Posted by: ${announcement.author || 'Unknown'}`;
+    // Prefer authorName, then author, then try to resolve via authorUid in the users node
+    if (previewAuthorEl) {
+      let authorText = announcement.authorName || announcement.author || 'Unknown';
+      previewAuthorEl.textContent = `Posted by: ${authorText}`;
+
+      // If we only have an authorUid (or authorText is Unknown), try to fetch user's name from DB
+      if ((authorText === 'Unknown' || !authorText) && announcement.authorUid) {
+        // show a loading placeholder while we fetch
+        previewAuthorEl.textContent = `Posted by: Loading...`;
+        database.ref(`users/${announcement.authorUid}`).once('value').then((snap) => {
+          const u = snap.val();
+          const resolved = u && (u.name || u.displayName || u.fullName);
+          if (resolved) {
+            previewAuthorEl.textContent = `Posted by: ${resolved}`;
+          } else {
+            previewAuthorEl.textContent = `Posted by: Unknown`;
+          }
+        }).catch((err) => {
+          console.warn('Could not resolve announcement author name', err);
+          previewAuthorEl.textContent = `Posted by: ${announcement.author || 'Unknown'}`;
+        });
+      }
+    }
     if (previewCategoryEl) previewCategoryEl.textContent = `Category: ${announcement.category || 'General'}`;
     if (previewPriorityEl) previewPriorityEl.textContent = `Priority: ${announcement.priority || 'low'}`;
 
