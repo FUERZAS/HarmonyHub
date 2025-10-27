@@ -793,6 +793,11 @@ function openResourceModal(resourceCard, playMode = false) {
             video.setAttribute('playsinline', ''); // better mobile behavior (iOS)
             video.playsInline = true;
             video.controls = true;
+            // prefer anonymous CORS to allow canvas/poster usage if needed
+            video.crossOrigin = 'anonymous';
+            video.setAttribute('crossorigin', 'anonymous');
+            // prevent download from browser native controls where supported
+            video.setAttribute('controlsList', 'nodownload');
             video.preload = 'metadata';
             video.style.width = '100%';
             dynamicContainer.appendChild(video);
@@ -803,19 +808,239 @@ function openResourceModal(resourceCard, playMode = false) {
             audio.id = 'modal-media-player';
             audio.src = resource.fileUrl;
             audio.setAttribute('playsinline', '');
+            audio.crossOrigin = 'anonymous';
+            audio.setAttribute('crossorigin', 'anonymous');
             audio.controls = true;
             audio.preload = 'metadata';
             audio.style.width = '100%';
             dynamicContainer.appendChild(audio);
             if (playMode) audio.play().catch(() => {});
         } else if (['pdf','doc','docx','ppt','pptx'].includes(ext)) {
-            // Use Google Docs viewer for office files (works for public URLs)
-            const iframe = document.createElement('iframe');
-            iframe.className = 'resource-iframe-preview';
-            // for PDFs, modern browsers often handle inline display; still use iframe for consistency
-            iframe.src = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(resource.fileUrl)}`;
-            iframe.setAttribute('aria-label', 'Document preview');
-            dynamicContainer.appendChild(iframe);
+            // Prefer native PDF embedding for PDFs; fallback to Google Docs viewer for office files
+            if (ext === 'pdf') {
+                // small note area for guidance/errors
+                let previewNote = dynamicContainer.querySelector('.preview-note');
+                if (!previewNote) {
+                    previewNote = document.createElement('div');
+                    previewNote.className = 'preview-note';
+                    previewNote.style.margin = '0.5rem 0';
+                    previewNote.style.color = '#6c757d';
+                    previewNote.style.fontSize = '0.9rem';
+                    dynamicContainer.appendChild(previewNote);
+                }
+
+                // Create a PDF.js viewer container (canvas + controls)
+                const viewer = document.createElement('div');
+                viewer.className = 'pdfjs-viewer';
+
+                const controls = document.createElement('div');
+                controls.className = 'pdf-controls';
+                controls.style.display = 'flex';
+                controls.style.gap = '8px';
+                controls.style.alignItems = 'center';
+                controls.style.marginBottom = '8px';
+
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'btn-secondary';
+                prevBtn.textContent = '◀';
+                prevBtn.title = 'Previous page';
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'btn-secondary';
+                nextBtn.textContent = '▶';
+                nextBtn.title = 'Next page';
+                const pageIndicator = document.createElement('span');
+                pageIndicator.className = 'pdf-page-indicator';
+                pageIndicator.textContent = '0 / 0';
+                const zoomOut = document.createElement('button');
+                zoomOut.className = 'btn-secondary';
+                zoomOut.textContent = '−';
+                zoomOut.title = 'Zoom out';
+                const zoomIn = document.createElement('button');
+                zoomIn.className = 'btn-secondary';
+                zoomIn.textContent = '+';
+                zoomIn.title = 'Zoom in';
+
+                controls.appendChild(prevBtn);
+                controls.appendChild(pageIndicator);
+                controls.appendChild(nextBtn);
+                controls.appendChild(zoomOut);
+                controls.appendChild(zoomIn);
+
+                const canvas = document.createElement('canvas');
+                canvas.id = 'pdf-canvas';
+                canvas.style.width = '100%';
+                canvas.style.border = '1px solid #e9ecef';
+                viewer.appendChild(controls);
+                viewer.appendChild(canvas);
+                dynamicContainer.appendChild(viewer);
+
+                // Helper to load PDF.js and render
+                async function loadAndRenderPdf(url) {
+                    previewNote.textContent = 'Loading PDF...';
+                    try {
+                        // Ensure pdfjs is loaded
+                        if (!window.pdfjsLib) {
+                            await new Promise((resolve, reject) => {
+                                const s = document.createElement('script');
+                                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js';
+                                s.onload = resolve;
+                                s.onerror = reject;
+                                document.head.appendChild(s);
+                            });
+                            // set worker
+                            if (window.pdfjsLib) {
+                                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js';
+                            }
+                        } else {
+                            window.pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfjsLib.GlobalWorkerOptions.workerSrc || 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js';
+                        }
+
+                        // Fetch the PDF as arrayBuffer (may be blocked by CORS)
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 10000);
+                        const resp = await fetch(url, { method: 'GET', mode: 'cors', signal: controller.signal });
+                        clearTimeout(timeout);
+                        if (!resp.ok) throw new Error('Network response was not ok');
+                        const arrayBuffer = await resp.arrayBuffer();
+
+                        const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+                        const pdf = await loadingTask.promise;
+
+                        let currentPage = 1;
+                        let scale = 1.2;
+                        const ctx = canvas.getContext('2d');
+
+                        async function renderPage(pageNum) {
+                            const page = await pdf.getPage(pageNum);
+                            const viewport = page.getViewport({ scale: scale });
+                            // set canvas size to match viewport (device pixels)
+                            const ratio = window.devicePixelRatio || 1;
+                            canvas.width = Math.floor(viewport.width * ratio);
+                            canvas.height = Math.floor(viewport.height * ratio);
+                            canvas.style.height = (viewport.height) + 'px';
+                            canvas.style.width = '100%';
+                            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                            const renderContext = { canvasContext: ctx, viewport: viewport };
+                            await page.render(renderContext).promise;
+                            pageIndicator.textContent = `${pageNum} / ${pdf.numPages}`;
+                        }
+
+                        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPage(currentPage); } };
+                        nextBtn.onclick = () => { if (currentPage < pdf.numPages) { currentPage++; renderPage(currentPage); } };
+                        zoomIn.onclick = () => { scale = Math.min(scale + 0.25, 3); renderPage(currentPage); };
+                        zoomOut.onclick = () => { scale = Math.max(scale - 0.25, 0.5); renderPage(currentPage); };
+
+                        // initial render
+                        previewNote.textContent = '';
+                        await renderPage(currentPage);
+                    } catch (err) {
+                        // Try proxy endpoint once before falling back to Google Viewer
+                        try {
+                            const proxyUrl = `/pdf-proxy?url=${encodeURIComponent(url)}`;
+                            previewNote.textContent = 'Direct load failed; trying secure proxy...';
+                            // Attempt to load via proxy
+                            const controller2 = new AbortController();
+                            const timeout2 = setTimeout(() => controller2.abort(), 15000);
+                            const resp2 = await fetch(proxyUrl, { method: 'GET', mode: 'cors', signal: controller2.signal });
+                            clearTimeout(timeout2);
+                            if (!resp2.ok) throw new Error('Proxy response not ok');
+                            const arrayBuffer2 = await resp2.arrayBuffer();
+                            // render proxy result
+                            const loadingTask2 = window.pdfjsLib.getDocument({ data: arrayBuffer2 });
+                            const pdf2 = await loadingTask2.promise;
+                            // render first page of proxy-fetched pdf
+                            let currentPage = 1;
+                            let scale = 1.2;
+                            const ctx = canvas.getContext('2d');
+                            async function renderPageProxy(pageNum) {
+                                const page = await pdf2.getPage(pageNum);
+                                const viewport = page.getViewport({ scale: scale });
+                                const ratio = window.devicePixelRatio || 1;
+                                canvas.width = Math.floor(viewport.width * ratio);
+                                canvas.height = Math.floor(viewport.height * ratio);
+                                canvas.style.height = (viewport.height) + 'px';
+                                canvas.style.width = '100%';
+                                ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                                const renderContext = { canvasContext: ctx, viewport: viewport };
+                                await page.render(renderContext).promise;
+                                pageIndicator.textContent = `${pageNum} / ${pdf2.numPages}`;
+                            }
+                            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPageProxy(currentPage); } };
+                            nextBtn.onclick = () => { if (currentPage < pdf2.numPages) { currentPage++; renderPageProxy(currentPage); } };
+                            zoomIn.onclick = () => { scale = Math.min(scale + 0.25, 3); renderPageProxy(currentPage); };
+                            zoomOut.onclick = () => { scale = Math.max(scale - 0.25, 0.5); renderPageProxy(currentPage); };
+                            previewNote.textContent = '';
+                            await renderPageProxy(currentPage);
+                        } catch (err2) {
+                            // fallback: use Google Viewer iframe
+                            previewNote.innerHTML = 'PDF could not be loaded directly (CORS or network). Falling back to Google Viewer. Use <strong>Open</strong> or <strong>Download</strong> as alternatives.';
+                            const iframe = document.createElement('iframe');
+                            iframe.className = 'resource-iframe-preview';
+                            iframe.src = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
+                            iframe.setAttribute('aria-label', 'Document preview');
+                            iframe.style.width = '100%';
+                            iframe.style.height = '70vh';
+                            // replace viewer with iframe
+                            viewer.remove();
+                            dynamicContainer.appendChild(iframe);
+                        }
+                    }
+                }
+
+                // Start probe + load
+                previewNote.textContent = 'Checking file availability...';
+                (async () => {
+                    try {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 5000);
+                        const res = await fetch(resource.fileUrl, { method: 'HEAD', mode: 'cors', signal: controller.signal });
+                        clearTimeout(timeout);
+                        const ct = res.headers.get('content-type') || '';
+                        if (res.ok && ct.indexOf('pdf') !== -1) {
+                            // Good to fetch and render via PDF.js
+                            await loadAndRenderPdf(resource.fileUrl);
+                        } else if (res.ok) {
+                            // Not explicit PDF, try PDF.js anyway but show note
+                            previewNote.textContent = 'File accessible but content type is not application/pdf; attempting viewer...';
+                            await loadAndRenderPdf(resource.fileUrl);
+                        } else {
+                            // fallback
+                            previewNote.innerHTML = 'Preview may be blocked (private file or CORS). Use <strong>Open</strong> to view or <strong>Download</strong> to save.';
+                            const iframe = document.createElement('iframe');
+                            iframe.className = 'resource-iframe-preview';
+                            iframe.src = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(resource.fileUrl)}`;
+                            iframe.setAttribute('aria-label', 'Document preview');
+                            iframe.style.width = '100%';
+                            iframe.style.height = '70vh';
+                            viewer.remove();
+                            dynamicContainer.appendChild(iframe);
+                        }
+                    } catch (err) {
+                        // CORS or network error; try PDF.js but likely will fallback
+                        try {
+                            await loadAndRenderPdf(resource.fileUrl);
+                        } catch (e) {
+                            const iframe = document.createElement('iframe');
+                            iframe.className = 'resource-iframe-preview';
+                            iframe.src = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(resource.fileUrl)}`;
+                            iframe.setAttribute('aria-label', 'Document preview');
+                            iframe.style.width = '100%';
+                            iframe.style.height = '70vh';
+                            viewer.remove();
+                            dynamicContainer.appendChild(iframe);
+                            previewNote.innerHTML = 'Unable to verify file from this browser (CORS or private file). Click <strong>Open</strong> to view or <strong>Download</strong> to save.';
+                        }
+                    }
+                })();
+            } else {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'resource-iframe-preview';
+                iframe.src = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(resource.fileUrl)}`;
+                iframe.setAttribute('aria-label', 'Document preview');
+                iframe.style.width = '100%';
+                iframe.style.height = '70vh';
+                dynamicContainer.appendChild(iframe);
+            }
         } else if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
             const img = document.createElement('img');
             img.className = 'resource-image-preview';
@@ -864,6 +1089,20 @@ function openResourceModal(resourceCard, playMode = false) {
         const downloadButton = resourceCard.querySelector('.download-btn');
         downloadResource(downloadButton);
     };
+
+    // Open resource in a new tab/window (useful when embedding is blocked)
+    const openBtn = document.getElementById('modal-open');
+    if (openBtn) {
+        openBtn.onclick = () => {
+            const openUrl = resource.fileUrl || resource.externalUrl || '#';
+            try {
+                window.open(openUrl, '_blank', 'noopener,noreferrer');
+            } catch (e) {
+                // fallback: navigate
+                window.location.href = openUrl;
+            }
+        };
+    }
 
     // Show modal
     modal.classList.add('active');
@@ -1069,5 +1308,10 @@ style.textContent = `
         display: flex;
         gap: 0.5rem;
     }
+    .pdfjs-viewer { width: 100%; }
+    .pdfjs-viewer canvas { width: 100%; height: auto; display:block; }
+    .pdf-controls button { background: #f1f3f5; border: 1px solid #e9ecef; padding: 6px 8px; border-radius:4px; cursor: pointer; }
+    .pdf-page-indicator { font-weight: 600; margin: 0 8px; }
+    .preview-note { margin-bottom: 8px; }
 `;
 document.head.appendChild(style);

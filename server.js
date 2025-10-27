@@ -4,10 +4,13 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { pipeline } from 'stream';
+import { promisify } from 'util';
+const streamPipeline = promisify(pipeline);
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = Number(process.env.PORT) || 5001;
 
 // Middleware
 app.use(cors());
@@ -47,7 +50,75 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
-  console.log(`📁 Open AI Assistant: http://localhost:${PORT}/assist.html`);
+// Proxy endpoint to fetch PDFs (or other resources) server-side and stream them to the client.
+// This helps bypass CORS and framing restrictions when needed.
+app.get('/pdf-proxy', async (req, res) => {
+  const target = req.query.url;
+  if (!target) return res.status(400).send('Missing url parameter');
+  try {
+    const parsed = new URL(target);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return res.status(400).send('Invalid url protocol');
+  } catch (e) {
+    return res.status(400).send('Invalid url');
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    const upstream = await fetch(target, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!upstream.ok) {
+      return res.status(upstream.status).send(`Upstream returned ${upstream.status}`);
+    }
+
+    let contentType = upstream.headers.get('content-type') || 'application/octet-stream';
+    const contentLength = upstream.headers.get('content-length');
+
+    // If the upstream content-type looks wrong but the URL ends with .pdf,
+    // force applying PDF content-type so browsers and PDF.js treat it correctly.
+    if (!/pdf/i.test(contentType) && req.query.url && req.query.url.toLowerCase().endsWith('.pdf')) {
+      contentType = 'application/pdf';
+    }
+
+    // Set permissive headers so the browser can fetch/embed the response
+    res.setHeader('Content-Type', contentType);
+    // Suggest inline rendering and a sane filename so browsers open the PDF.
+    try {
+      const urlObj = new URL(req.query.url);
+      const name = path.basename(urlObj.pathname) || 'document.pdf';
+      res.setHeader('Content-Disposition', `inline; filename="${name}"`);
+    } catch (e) {
+      // ignore filename header if URL parsing fails
+    }
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    if (contentLength) res.setHeader('Content-Length', contentLength);
+
+    // Stream the upstream response body to the client
+    await streamPipeline(upstream.body, res);
+  } catch (err) {
+    if (err && err.name === 'AbortError') return res.status(504).send('Upstream timeout');
+    console.error('pdf-proxy error:', err);
+    return res.status(502).send('Failed to fetch upstream resource');
+  }
 });
+
+function startServer(port, attemptsLeft = 5) {
+  const server = app.listen(port, () => {
+    console.log(`✅ Server running at http://localhost:${port}`);
+    console.log(`📁 Open AI Assistant: http://localhost:${port}/assist.html`);
+  });
+
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+      console.warn(`Port ${port} in use, trying ${port + 1}...`);
+      setTimeout(() => startServer(port + 1, attemptsLeft - 1), 200);
+      return;
+    }
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+}
+
+startServer(PORT, 10);

@@ -510,12 +510,29 @@ function saveResourceToDatabase(name, description, category, accessLevel, fileUr
     const currentUser = firebase.auth().currentUser;
 
     const now = Date.now();
+
+    // Prefer Cloudinary raw delivery URL for PDF files so they are delivered in a way
+    // that is more reliably embeddable/downloadable by browsers and viewers.
+    let finalFileUrl = fileUrl;
+    if (cloudinaryData && (cloudinaryData.format || '').toLowerCase() === 'pdf') {
+        try {
+            const cloudName = window.cloudinaryConfig?.cloudName || null;
+            const publicId = cloudinaryData.public_id;
+            const version = cloudinaryData.version;
+            if (cloudName && publicId) {
+                finalFileUrl = `https://res.cloudinary.com/${cloudName}/raw/upload/${version ? 'v' + version + '/' : ''}${publicId}.${cloudinaryData.format}`;
+            }
+        } catch (e) {
+            finalFileUrl = fileUrl;
+        }
+    }
+
     const resourceData = {
         name: name,
         description: description,
         category: category,
         accessLevel: accessLevel,
-        fileUrl: fileUrl,
+        fileUrl: finalFileUrl,
         uploadDate: now,     // existing field (for legacy display)
         timestamp: now,      // new field (for sorting by recency)
         uploadedBy: currentUser.uid

@@ -563,7 +563,20 @@ function updateResource(resourceId, name, description, category, accessLevel, ex
         if (resourceData.cloudinaryData) updatedData.cloudinaryData = resourceData.cloudinaryData;
 
         if (category !== 'links' && uploadedFileData) {
-            updatedData.fileUrl = uploadedFileData.secure_url;
+            let finalUrl = uploadedFileData.secure_url;
+            try {
+                if ((uploadedFileData.format || '').toLowerCase() === 'pdf') {
+                    const cloudName = window.cloudinaryConfig?.cloudName || null;
+                    const publicId = uploadedFileData.public_id;
+                    const version = uploadedFileData.version;
+                    if (cloudName && publicId) {
+                        finalUrl = `https://res.cloudinary.com/${cloudName}/raw/upload/${version ? 'v' + version + '/' : ''}${publicId}.${uploadedFileData.format}`;
+                    }
+                }
+            } catch (e) {
+                finalUrl = uploadedFileData.secure_url;
+            }
+            updatedData.fileUrl = finalUrl;
             updatedData.cloudinaryData = uploadedFileData;
         }
 

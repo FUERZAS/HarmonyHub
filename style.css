@@ -398,6 +398,8 @@ body {
     background: inherit;
     border-radius: inherit;
     align-items: center;
+    justify-content: center; /* center spinner horizontally */
+    padding: 0; /* ensure no extra offsets */
 }
 
 /* Sidebar toggle styling */
@@ -444,6 +446,7 @@ body {
 
 .btn.loading .btn-loader {
     display: flex;
+    justify-content: center; /* ensure loader is centered when visible */
 }
 
 .auth-footer {

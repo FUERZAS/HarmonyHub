@@ -82,6 +82,94 @@ function initializeCloudinaryWidget() {
         document.getElementById('cloudinary-upload-btn').addEventListener('click', () => {
             cloudinaryWidget.open();
         });
+
+        // Add a dedicated PDF upload button that forces resource_type='raw'.
+        // This avoids accidentally uploading PDFs under the image delivery pipeline.
+        // If an element with id `cloudinary-upload-pdf-btn` exists in the DOM, use it;
+        // otherwise insert a small button next to the main upload button.
+        (function setupPdfUploadFallback() {
+            const cloudBtn = document.getElementById('cloudinary-upload-btn');
+            if (!cloudBtn) return;
+
+            // Create hidden file input for PDFs
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'file';
+            hiddenInput.accept = 'application/pdf, .pdf';
+            hiddenInput.style.display = 'none';
+            hiddenInput.id = 'cloudinary-pdf-input';
+            document.body.appendChild(hiddenInput);
+
+            // Create or reuse a button for PDF upload
+            let pdfBtn = document.getElementById('cloudinary-upload-pdf-btn');
+            if (!pdfBtn) {
+                pdfBtn = document.createElement('button');
+                pdfBtn.type = 'button';
+                pdfBtn.id = 'cloudinary-upload-pdf-btn';
+                pdfBtn.className = cloudBtn.className || 'action-btn';
+                pdfBtn.style.marginLeft = '8px';
+                pdfBtn.textContent = 'Upload PDF';
+                cloudBtn.parentNode.insertBefore(pdfBtn, cloudBtn.nextSibling);
+            }
+
+            pdfBtn.addEventListener('click', () => hiddenInput.click());
+
+            hiddenInput.addEventListener('change', async (ev) => {
+                const file = ev.target.files && ev.target.files[0];
+                if (!file) return;
+
+                // Basic client-side validation
+                const maxSize = cloudinaryConfig && cloudinaryConfig.maxFileSize ? cloudinaryConfig.maxFileSize : 100 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    Swal.fire('File too large', 'Selected PDF exceeds the maximum allowed size.', 'error');
+                    hiddenInput.value = '';
+                    return;
+                }
+
+                // Ensure we have the cloud name and upload preset
+                const cloudName = window.cloudinaryConfig?.cloudName;
+                const uploadPreset = window.cloudinaryConfig?.uploadPreset;
+                if (!cloudName || !uploadPreset) {
+                    Swal.fire('Upload configuration missing', 'Cloudinary configuration (cloudName/uploadPreset) is required for PDF uploads.', 'error');
+                    hiddenInput.value = '';
+                    return;
+                }
+
+                try {
+                    pdfBtn.disabled = true;
+                    pdfBtn.textContent = 'Uploading...';
+
+                    const form = new FormData();
+                    form.append('file', file);
+                    form.append('upload_preset', uploadPreset);
+                    // Force raw delivery for PDFs
+                    form.append('resource_type', 'raw');
+
+                    const uploadUrl = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/raw/upload`;
+                    const res = await fetch(uploadUrl, {
+                        method: 'POST',
+                        body: form
+                    });
+
+                    if (!res.ok) {
+                        const text = await res.text();
+                        console.error('Cloudinary raw upload failed', res.status, text);
+                        Swal.fire('Upload failed', 'Failed to upload PDF. See console for details.', 'error');
+                        return;
+                    }
+
+                    const info = await res.json();
+                    // Reuse the existing handler to show preview and populate uploadedFileData
+                    handleCloudinaryUpload(info);
+                } catch (err) {
+                    console.error('PDF upload error:', err);
+                    Swal.fire('Upload error', 'An error occurred while uploading the PDF.', 'error');
+                } finally {
+                    pdfBtn.disabled = false;
+                    pdfBtn.textContent = 'Upload PDF';
+                    hiddenInput.value = '';
+                }
+            });
+        })();
     } catch (error) {
         console.error('Error initializing Cloudinary widget:', error);
         document.getElementById('cloudinary-upload-btn').style.display = 'none';
@@ -515,12 +603,29 @@ function saveResourceToDatabase(name, description, category, accessLevel, fileUr
     const currentUser = firebase.auth().currentUser;
 
     const now = Date.now();
+    // If Cloudinary provided data for a PDF, prefer Cloudinary's raw delivery URL to improve embedding/download behavior
+    let finalFileUrl = fileUrl;
+    if (cloudinaryData && (cloudinaryData.format || '').toLowerCase() === 'pdf') {
+        try {
+            const cloudName = window.cloudinaryConfig?.cloudName || null;
+            const publicId = cloudinaryData.public_id;
+            const version = cloudinaryData.version;
+            if (cloudName && publicId) {
+                // Construct raw delivery URL which tends to serve PDFs with appropriate headers
+                finalFileUrl = `https://res.cloudinary.com/${cloudName}/raw/upload/${version ? 'v' + version + '/' : ''}${publicId}.${cloudinaryData.format}`;
+            }
+        } catch (e) {
+            // fallback to provided fileUrl
+            finalFileUrl = fileUrl;
+        }
+    }
+
     const resourceData = {
         name: name,
         description: description,
         category: category,
         accessLevel: accessLevel,
-        fileUrl: fileUrl,
+        fileUrl: finalFileUrl,
         uploadDate: now,     // existing field (for legacy display)
         timestamp: now,      // new field (for sorting by recency)
         uploadedBy: currentUser.uid
@@ -653,7 +758,22 @@ function updateResource(resourceId, name, description, category, accessLevel, ex
         
         // If a new file was uploaded, update the file URL and Cloudinary data
         if (category !== 'links' && uploadedFileData) {
-            updatedData.fileUrl = uploadedFileData.secure_url;
+            // Prefer a Cloudinary raw delivery URL for PDFs to improve embedding/download behavior
+            let finalUrl = uploadedFileData.secure_url;
+            try {
+                if ((uploadedFileData.format || '').toLowerCase() === 'pdf') {
+                    const cloudName = window.cloudinaryConfig?.cloudName || null;
+                    const publicId = uploadedFileData.public_id;
+                    const version = uploadedFileData.version;
+                    if (cloudName && publicId) {
+                        finalUrl = `https://res.cloudinary.com/${cloudName}/raw/upload/${version ? 'v' + version + '/' : ''}${publicId}.${uploadedFileData.format}`;
+                    }
+                }
+            } catch (e) {
+                finalUrl = uploadedFileData.secure_url;
+            }
+
+            updatedData.fileUrl = finalUrl;
             updatedData.cloudinaryData = uploadedFileData;
         }
         

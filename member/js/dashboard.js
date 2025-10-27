@@ -91,8 +91,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 80);
     }
 
-    document.getElementById('view-all-activity').addEventListener('click', () => {
-        if (!window.allRecentActivities) return;
+    const viewAllActivityBtn = document.getElementById('view-all-activity');
+    if (viewAllActivityBtn) {
+        viewAllActivityBtn.addEventListener('click', () => {
+            if (!window.allRecentActivities) return;
 
         const modalContent = document.createElement('div');
         modalContent.className = 'activity-modal-content';
@@ -137,7 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 popup: 'activity-modal'
             }
         });
-    });
+        });
+    }
 
     // Helper to render a list of activities
     function renderActivityList(activityArray) {
@@ -236,17 +239,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // ========================= NOTIFICATIONS =========================
     if (notificationBtn) {
         notificationBtn.addEventListener('click', () => {
-            notificationsDropdown.classList.toggle('active');
+            if (notificationsDropdown) notificationsDropdown.classList.toggle('active');
         });
     }
 
     // Close dropdown when clicking outside
     document.addEventListener('click', e => {
-        if (
-            notificationsDropdown &&
-            !notificationsDropdown.contains(e.target) &&
-            !notificationBtn.contains(e.target)
-        ) {
+        if (!notificationsDropdown) return;
+        const clickedInsideDropdown = notificationsDropdown.contains(e.target);
+        const clickedOnNotifBtn = notificationBtn && notificationBtn.contains && notificationBtn.contains(e.target);
+        if (!clickedInsideDropdown && !clickedOnNotifBtn) {
             notificationsDropdown.classList.remove('active');
         }
     });

@@ -126,11 +126,37 @@
       }
     }
 
+    // Pre-check: ensure getUserMedia is available
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      console.error('getUserMedia not supported in this browser');
+      Swal.fire('Microphone Error', 'Your browser does not support microphone access (getUserMedia). Try a modern browser (Chrome, Firefox, or Safari) or update your browser.', 'error');
+      return;
+    }
+
+    // Warn when not in secure context (required on many mobile browsers)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      console.warn('Insecure context: getUserMedia may be blocked. Current protocol:', location.protocol);
+      // show a gentle warning but still attempt to request access
+      // Users on mobile typically need HTTPS for microphone permissions
+    }
+
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
       console.error('Microphone access error', err);
-      Swal.fire('Microphone Error', 'Unable to access microphone. Please allow microphone access and try again.', 'error');
+      // Provide a more specific message depending on the error
+      let userMsg = 'Unable to access microphone. Please allow microphone access and try again.';
+      if (err && err.name) {
+        // Common errors: NotAllowedError, NotFoundError, NotReadableError, OverconstrainedError
+        userMsg += `\nError: ${err.name}${err.message ? ' - ' + err.message : ''}`;
+        if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+          userMsg += '\nTip: Check site permissions in your browser settings and ensure microphone access is allowed for this site.';
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          userMsg += '\nTip: No microphone was found. Ensure your device has a microphone and it is not in use by another app.';
+        }
+      }
+      // Show the full message in an alert so mobile users can read guidance
+      Swal.fire({ title: 'Microphone Error', text: userMsg, icon: 'error', confirmButtonText: 'OK', width: 'auto' });
       return;
     }
 

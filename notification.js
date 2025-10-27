@@ -211,11 +211,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 : `<div class="notif-status">✔️ Solved</div>`;
         }
 
+        const displayName = data.name || 'Unknown User';
+        const avatarInitial = (displayName && displayName.length) ? displayName.charAt(0).toUpperCase() : '?';
+
         notifItem.innerHTML = `
-            <div class="notif-avatar">${data.name.charAt(0).toUpperCase()}</div>
+            <div class="notif-avatar">${avatarInitial}</div>
             <div class="notif-content">
-                <strong>${data.name}</strong>
-                <small>${data.email}</small><br>
+                <strong>${displayName}</strong>
+                <small>${data.email || ''}</small><br>
                 <small>${new Date(data.timestamp).toLocaleString()}</small>
                 ${actionsHtml}
             </div>
@@ -234,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 database.ref(`users/${data.userId}`).update({ isVerified: true, verificationDate });
                 database.ref(`activity_table/${data.id}`).update({
                     isVerified: true,
-                    verifiedBy: currentUser.name,
+                    verifiedBy: currentUser?.name || 'Unknown',
                     verificationDate,
                     solved: true
                 });
