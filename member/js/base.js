@@ -229,9 +229,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (sidebarToggle) sidebarToggle.style.display = 'flex';
             updateToggleIcon();
         } else {
-            // For member pages: keep the sidebar collapsed (hidden) by default on larger screens
-            // This prevents the sidebar panel from being exposed unintentionally.
-            sidebar.classList.add('mobile-collapsed');
+            // On larger screens show the sidebar by default (same behavior as staff/admin).
+            // Keep the toggle hidden on desktop since the sidebar is visible.
+            sidebar.classList.remove('mobile-collapsed');
             if (sidebarToggle) sidebarToggle.style.display = 'none';
         }
     }
